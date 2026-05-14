@@ -38,6 +38,38 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
             solution_2_score: z.number().min(0).max(10),
             solution_1_reasoning: z.string(),
             solution_2_reasoning: z.string(),
-        }))
+        })),
+
+        systemPrompt: `You are a judge tasked with evaluating two solutions
+        generating by dfferent AI models. Please provide a score out of 10 for each
+        solution and also provide a reasoning for each score.
+        `
     })
+
+    const judgeResponse = await judge.invoke({
+        messages: [
+            new HumanMessage(`
+                Problem: ${problem}
+                Solution 1: ${solution_1}
+                Solution 2: ${solution_2}
+                Please evaluate the solutions and provide scores and reasoning.
+            `)
+        ]
+    })
+
+    const {
+        solution_1_score,
+        solution_2_score,
+        solution_1_reasoning,
+        solution_2_reasoning
+    } = judgeResponse.structuredResponse
+
+    return {
+        judge: {
+            solution_1_score,
+            solution_2_score,
+            solution_1_reasoning,
+            solution_2_reasoning,
+        }
+    }
 }

@@ -8,12 +8,12 @@ export const geminiModel = new ChatGoogle({
     model: "gemini-flash-latest",
 });
 
-export const mistralAIModel = new ChatMistralAI({
+export const mistralAIModel: ChatMistralAI = new ChatMistralAI({
     apiKey: config.MISTRAL_API_KEY,
     model: "mistral-medium-latest",
 });
 
-export const cohereModel = new ChatCohere({
+export const cohereModel: ChatCohere = new ChatCohere({
     apiKey: config.COHERE_API_KEY,
     model: "cohere-command-a-03-2025",
 });
