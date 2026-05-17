@@ -16,16 +16,23 @@ const state = new StateSchema({
 });
 
 const solutionNode: GraphNode<typeof state> = async (state) => {
-
-    const [mistralResponse, cohereResponse] = await Promise.all([
+    const [mistralResult, cohereResult] = await Promise.allSettled([
         mistralAIModel.invoke(state.problem),
         cohereModel.invoke(state.problem),
-    ])
+    ]);
+
+    const solution_1 = mistralResult.status === 'fulfilled' 
+        ? mistralResult.value.text 
+        : `[Error: Mistral AI failed to respond. They might be experiencing rate limits (429).]`;
+        
+    const solution_2 = cohereResult.status === 'fulfilled' 
+        ? cohereResult.value.text 
+        : `[Error: Cohere AI failed to respond. They might be experiencing rate limits (429).]`;
 
     return {
-        solution_1: mistralResponse.text,
-        solution_2: cohereResponse.text,
-    }
+        solution_1,
+        solution_2,
+    };
 }
 
 const judgeNode: GraphNode<typeof state> = async (state) => {
@@ -46,31 +53,43 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
         `
     })
 
-    const judgeResponse = await judge.invoke({
-        messages: [
-            new HumanMessage(`
-                Problem: ${problem}
-                Solution 1: ${solution_1}
-                Solution 2: ${solution_2}
-                Please evaluate the solutions and provide scores and reasoning.
-            `)
-        ]
-    })
+    try {
+        const judgeResponse = await judge.invoke({
+            messages: [
+                new HumanMessage(`
+                    Problem: ${problem}
+                    Solution 1: ${solution_1}
+                    Solution 2: ${solution_2}
+                    Please evaluate the solutions and provide scores and reasoning.
+                `)
+            ]
+        });
 
-    const {
-        solution_1_score,
-        solution_2_score,
-        solution_1_reasoning,
-        solution_2_reasoning
-    } = judgeResponse.structuredResponse
-
-    return {
-        judge: {
+        const {
             solution_1_score,
             solution_2_score,
             solution_1_reasoning,
-            solution_2_reasoning,
-        }
+            solution_2_reasoning
+        } = judgeResponse.structuredResponse;
+
+        return {
+            judge: {
+                solution_1_score,
+                solution_2_score,
+                solution_1_reasoning,
+                solution_2_reasoning,
+            }
+        };
+    } catch (error) {
+        console.error("Judge Node Error:", error);
+        return {
+            judge: {
+                solution_1_score: 0,
+                solution_2_score: 0,
+                solution_1_reasoning: "[Error: Gemini judge model failed to respond, likely due to rate limits (429).]",
+                solution_2_reasoning: "[Error: Gemini judge model failed to respond, likely due to rate limits (429).]",
+            }
+        };
     }
 }
 

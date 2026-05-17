@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Cpu } from 'lucide-react';
+import { Cpu, Sun, Moon } from 'lucide-react';
 import { MessageThread } from './components/MessageThread';
 import { ChatInput } from './components/ChatInput';
+import { useTheme } from './context/ThemeContext';
 import './App.css';
 
 // Initial Mock Data
@@ -11,7 +12,7 @@ const INITIAL_MOCK_DATA = {
   solution_2: "Certainly! Below is a simple implementation of a factorial function in JavaScript. This function calculates the factorial of a given non-negative integer `n`.\n\n```javascript\nfunction factorial(n) {\n    if (n < 0) {\n        throw new Error(\"Factorial is not defined for negative numbers.\");\n    }\n    if (n === 0 || n === 1) {\n        return 1;\n    }\n    let result = 1;\n    for (let i = 2; i <= n; i++) {\n        result *= i;\n    }\n    return result;\n}\n\n// Example usage:\nconsole.log(factorial(5)); // Output: 120\nconsole.log(factorial(0)); // Output: 1\nconsole.log(factorial(10)); // Output: 3628800\n```\n\n### Explanation:\n- **Input Validation**: The function first checks if the input `n` is negative. If it is, an error is thrown because the factorial is not defined for negative numbers.\n- **Base Case**: If `n` is 0 or 1, the function returns 1, as the factorial of 0 and 1 is defined to be 1.\n- **Iterative Calculation**: For `n > 1`, the function initializes `result` to 1 and then iterates from 2 to `n`, multiplying `result` by each integer in this range.\n\n### Recursive Version:\nIf you prefer a recursive implementation, here it is:\n\n```javascript\nfunction factorialRecursive(n) {\n    if (n < 0) {\n        throw new Error(\"Factorial is not defined for negative numbers.\");\n    }\n    if (n === 0 || n === 1) {\n        return 1;\n    }\n    return n * factorialRecursive(n - 1);\n}\n\n// Example usage:\nconsole.log(factorialRecursive(5)); // Output: 120\nconsole.log(factorialRecursive(0)); // Output: 1\nconsole.log(factorialRecursive(10)); // Output: 3628800\n```\n\nBoth versions will correctly compute the factorial of a non-negative integer. Choose the one that best fits your needs or preferences.",
   judge: {
       solution_1_score: 10,
-      solution_2_score: 10,
+      solution_2_score: 8,
       solution_1_reasoning: "Solution 1 provides multiple implementations (iterative, recursive, and a one-liner arrow function) which gives the user options based on their coding style. It also includes helpful notes regarding the base case for 0!, the handling of negative numbers, and potential performance/memory issues like stack overflow in the recursive version. Returning NaN for negative numbers is a valid mathematical approach in JavaScript.",
       solution_2_reasoning: "Solution 2 is also excellent and follows best practices. It provides both iterative and recursive implementations with clear explanations. It uses a robust error-handling approach by throwing an Error for negative inputs, which is often preferred in production code over returning NaN. The code is clean, well-commented, and includes multiple example use cases."
   }
@@ -20,6 +21,8 @@ const INITIAL_MOCK_DATA = {
 function App() {
   const [messages, setMessages] = useState([INITIAL_MOCK_DATA]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -30,30 +33,17 @@ function App() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = (apiResult) => {
+    if (!apiResult) return;
 
-    // Create a new simulated message
-    const newMessage = {
-      problem: input,
-      solution_1: `Here is a **simulated response** from Model Alpha for: "${input}"\n\n\`\`\`javascript\nconst example = "Hello Alpha";\nconsole.log(example);\n\`\`\``,
-      solution_2: `Here is a **simulated response** from Model Beta for: "${input}"\n\n\`\`\`python\nexample = "Hello Beta"\nprint(example)\n\`\`\``,
-      judge: {
-        solution_1_score: Math.floor(Math.random() * 3) + 8, // Random score between 8-10
-        solution_2_score: Math.floor(Math.random() * 3) + 8, // Random score between 8-10
-        solution_1_reasoning: "Model Alpha provides a concise and accurate javascript snippet.",
-        solution_2_reasoning: "Model Beta provides a well-structured python alternative."
-      }
-    };
-
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => [...prev, apiResult]);
     setInput('');
   };
 
   return (
-    <div className="h-screen bg-[#060913] text-gray-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-100 flex flex-col overflow-hidden relative">
+    <div className="h-screen bg-gray-50 dark:bg-[#060913] text-gray-900 dark:text-gray-100 font-sans selection:bg-cyan-500/30 dark:selection:bg-cyan-500/30 selection:text-cyan-900 dark:selection:text-cyan-100 flex flex-col overflow-hidden relative transition-colors duration-300">
       {/* Header */}
-      <header className="border-b border-cyan-900/50 bg-[#0b0f19]/80 backdrop-blur-md shrink-0 z-50">
+      <header className="border-b border-gray-200 dark:border-cyan-900/50 bg-white/80 dark:bg-[#0b0f19]/80 backdrop-blur-md shrink-0 z-50 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.4)]">
@@ -61,18 +51,22 @@ function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 tracking-wide font-mono">
-                <span className="text-white">Arenix</span>
+                <span className="text-gray-900 dark:text-white">Arenix</span>
               </h1>
-              <div className="text-[10px] text-cyan-500 uppercase tracking-widest flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
+              <div className="text-[10px] text-cyan-600 dark:text-cyan-500 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-cyan-600 dark:bg-cyan-500 animate-pulse"></span>
                 System Online
               </div>
             </div>
           </div>
-          <div className="hidden sm:flex gap-4">
-            <div className="px-4 py-1.5 rounded-full bg-[#111827] border border-cyan-900/50 text-xs text-cyan-400 shadow-[inset_0_0_10px_rgba(0,229,255,0.1)]">
-              Evaluation Mode
-            </div>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-full bg-gray-200 dark:bg-[#111827] border border-gray-300 dark:border-cyan-900/50 text-gray-600 dark:text-cyan-400 hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
           </div>
         </div>
       </header>
@@ -83,6 +77,14 @@ function App() {
           {messages.map((msg, index) => (
             <MessageThread key={index} message={msg} />
           ))}
+          {loading && (
+            <div className="flex justify-center my-8">
+              <div className="flex items-center gap-3 bg-white/50 dark:bg-[#1E1B4B]/50 p-4 rounded-2xl border border-gray-200 dark:border-indigo-500/30 backdrop-blur-sm shadow-sm animate-pulse">
+                <Cpu className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                <span className="text-sm font-mono text-gray-600 dark:text-indigo-300">Analyzing query across models...</span>
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} className="h-4" />
         </div>
       </main>
@@ -93,6 +95,8 @@ function App() {
           input={input} 
           setInput={setInput} 
           onSend={handleSend} 
+          loading={loading}
+          setLoading={setLoading}
         />
       </div>
     </div>
