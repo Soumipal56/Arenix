@@ -10,8 +10,8 @@ export const ChatInput = ({ input, setInput, onSend }) => {
   };
 
   return (
-    <div className="w-full bg-gradient-to-t from-[#060913] via-[#060913] to-transparent pt-10 pb-10 px-4 mt-auto">
-      <div className="max-w-4xl mx-auto">
+    <div className="w-full bg-gradient-to-t from-[#060913] via-[#060913] to-transparent pt-10 pb-8 px-4 mt-auto pointer-events-none">
+      <div className="max-w-4xl mx-auto pointer-events-auto">
         <div className="relative flex items-center">
           <input 
             type="text" 

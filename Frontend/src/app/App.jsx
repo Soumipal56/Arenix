@@ -51,9 +51,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060913] text-gray-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-100 flex flex-col relative">
+    <div className="h-screen bg-[#060913] text-gray-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-100 flex flex-col overflow-hidden relative">
       {/* Header */}
-      <header className="border-b border-cyan-900/50 bg-[#0b0f19]/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-cyan-900/50 bg-[#0b0f19]/80 backdrop-blur-md shrink-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.4)]">
@@ -78,19 +78,23 @@ function App() {
       </header>
 
       {/* Main Chat Area */}
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 pb-10">
-        {messages.map((msg, index) => (
-          <MessageThread key={index} message={msg} />
-        ))}
-        <div ref={messagesEndRef} />
+      <main className="flex-1 overflow-y-auto w-full pb-32">
+        <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+          {messages.map((msg, index) => (
+            <MessageThread key={index} message={msg} />
+          ))}
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
       </main>
 
-      {/* Input Area */}
-      <ChatInput 
-        input={input} 
-        setInput={setInput} 
-        onSend={handleSend} 
-      />
+      {/* Input Area Overlay */}
+      <div className="absolute bottom-0 left-0 w-full z-40 pointer-events-none">
+        <ChatInput 
+          input={input} 
+          setInput={setInput} 
+          onSend={handleSend} 
+        />
+      </div>
     </div>
   );
 }
