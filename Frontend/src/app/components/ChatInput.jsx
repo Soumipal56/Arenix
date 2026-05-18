@@ -9,7 +9,7 @@ export const ChatInput = ({ input, setInput, onSend, loading, setLoading }) => {
 
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:3000/invoke', { input });
+      const response = await axios.post('/invoke', { input });
       console.log(response.data);
       
       onSend(response.data.result);

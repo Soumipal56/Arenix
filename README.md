@@ -151,3 +151,38 @@ The application is built defensively to capture rate-limiting issues or missing 
 
 * **Model Rate Limits**: If Mistral AI or Cohere AI returns a `429` error, the graph returns a descriptive error state to the UI without crashing the process.
 * **Judge Reliability**: If the Gemini Judge Agent fails, the backend captures the error safely, scoring both models `0` and giving clear technical logs to help debug API credentials.
+
+---
+
+## 🚀 Monolithic Production Deployment (Render)
+
+For optimal load-speeds and free-tier efficiency, Arenix is configured to compile as a **monolith** where the Express backend serves the pre-compiled static React frontend. This means you only need to host **one** Render Web Service instead of split environments.
+
+### Step-by-Step Render Setup
+
+1. **Push to GitHub**: Make sure all your local changes (including production updates) are committed and pushed to your GitHub repository.
+2. **Create New Web Service**:
+   * Log into your [Render Dashboard](https://dashboard.render.com/).
+   * Click **New +** and select **Web Service**.
+   * Connect your GitHub repository.
+3. **Configure Settings**:
+   * **Name**: `arenix`
+   * **Language/Runtime**: `Node`
+   * **Root Directory**: `(Leave empty)` (This must be the repository root to allow build access to both Backend and Frontend folders)
+   * **Build Command**:
+     ```bash
+     npm install --prefix Backend && npm run build --prefix Backend && npm install --prefix Frontend && npm run build --prefix Frontend
+     ```
+   * **Start Command**:
+     ```bash
+     npm start --prefix Backend
+     ```
+   * **Instance Type**: `Free`
+4. **Define Environment Variables**:
+   Under the **Environment** tab, add the following variables:
+   * `NODE_ENV`: `production` (Triggers static serving in Express)
+   * `GOOGLE_API_KEY`: `your_gemini_api_key`
+   * `MISTRAL_API_KEY`: `your_mistral_api_key`
+   * `COHERE_API_KEY`: `your_cohere_api_key`
+
+Click **Deploy Web Service**. Render will automatically build the React assets, compile your TypeScript server, bundle them together, and deploy them under a single HTTPS-secured domain (e.g., `https://arenix.onrender.com`).
